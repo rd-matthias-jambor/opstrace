@@ -14,7 +14,14 @@
  * limitations under the License.
  */
 
-import { delay, select, call } from "redux-saga/effects";
+import { CombinedState } from "redux";
+import {
+  delay,
+  select,
+  call,
+  CallEffect,
+  SelectEffect
+} from "redux-saga/effects";
 import { State } from "../reducer";
 
 import { SECOND, entries } from "@opstrace/utils";
@@ -39,7 +46,9 @@ import { OpstraceApplicationResources } from "../resources/app";
 
 import { getControllerConfig } from "../helpers";
 
-export function* reconciliationLoop(kubeConfig: KubeConfig) {
+export function* reconciliationLoop(
+  kubeConfig: KubeConfig
+): Generator<CallEffect | SelectEffect, void, CombinedState<State>> {
   while (true) {
     yield delay(1 * SECOND);
 
@@ -48,7 +57,7 @@ export function* reconciliationLoop(kubeConfig: KubeConfig) {
 
     const actualCollection: K8sResource[] = [];
 
-    entries(state.kubernetes.cluster).forEach(([_, cache]) => {
+    entries(state.kubernetes.cluster).forEach(([, cache]) => {
       if (cache && cache.resources) {
         actualCollection.push(...(cache.resources as K8sResource[]));
       }
