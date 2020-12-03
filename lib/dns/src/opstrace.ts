@@ -17,7 +17,7 @@
 import * as fs from "fs";
 
 import qs from "qs";
-import axios, { AxiosRequestConfig } from "axios";
+import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
 import open from "open";
 
 import { log } from "@opstrace/utils";
@@ -71,7 +71,7 @@ export class DNSClient {
     return Promise.resolve(DNSClient.instance);
   }
 
-  public async Login() {
+  public async Login(): Promise<void> {
     if (this.accessToken !== "") {
       return;
     }
@@ -142,7 +142,7 @@ export class DNSClient {
     return r.data;
   }
 
-  public async Delete(clustername: string): Promise<any> {
+  public async Delete(clustername: string): Promise<AxiosResponse> {
     log.debug("DNSClient.Delete()");
     const deleteRequest: AxiosRequestConfig = {
       method: "DELETE",
@@ -155,7 +155,7 @@ export class DNSClient {
     return axios.request(deleteRequest);
   }
 
-  public async Create(clustername: string): Promise<any> {
+  public async Create(clustername: string): Promise<AxiosResponse> {
     log.debug("DNSClient.Create()");
     const createRequest: AxiosRequestConfig = {
       method: "POST",
@@ -171,7 +171,7 @@ export class DNSClient {
   public async AddNameservers(
     clustername: string,
     nameservers: string[]
-  ): Promise<any> {
+  ): Promise<AxiosResponse> {
     log.debug("DNSClient.AddNameservers()");
     const updateRequest: AxiosRequestConfig = {
       method: "PUT",

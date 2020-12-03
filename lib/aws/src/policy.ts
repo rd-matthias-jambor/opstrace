@@ -15,7 +15,7 @@
  */
 
 import { IAM } from "aws-sdk";
-import { delay, call } from "redux-saga/effects";
+import { delay, call, CallEffect } from "redux-saga/effects";
 
 import { SECOND } from "@opstrace/utils";
 
@@ -76,7 +76,7 @@ export function* ensurePolicyExists({
 }: {
   PolicyName: string;
   PolicyDocument: string;
-}) {
+}): Generator<CallEffect, IAM.Policy, IAM.Policy> {
   while (true) {
     const existingPolicy: IAM.Policy = yield call(getPolicy, {
       PolicyName
@@ -109,7 +109,7 @@ export function* ensurePolicyDoesNotExist({
   PolicyName
 }: {
   PolicyName: string;
-}) {
+}): Generator<CallEffect, void, IAM.Policy> {
   while (true) {
     const existingPolicy: IAM.Policy = yield call(getPolicy, {
       PolicyName

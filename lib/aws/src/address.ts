@@ -68,7 +68,7 @@ export class ElasticIPRes extends AWSResource<EC2.Address> {
     return await this.getAddrforCluster();
   }
 
-  protected async tryDestroy() {
+  protected async tryDestroy(): Promise<void> {
     const address = await this.getAddrforCluster();
     if (address === false) return;
 
@@ -92,7 +92,9 @@ export class ElasticIPRes extends AWSResource<EC2.Address> {
   }
 }
 
-export async function ensureAddressDoesNotExist(clusterName: string) {
+export async function ensureAddressDoesNotExist(
+  clusterName: string
+): Promise<void> {
   const addr = new ElasticIPRes(clusterName);
   await addr.teardown();
 }

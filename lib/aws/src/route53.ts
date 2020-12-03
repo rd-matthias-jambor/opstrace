@@ -47,7 +47,9 @@ import { AWSApiError } from "./types";
  *
  * Return after all matching zones have been deleted in the described fashion.
  */
-export async function route53PurgeZonesForDnsName(dnsName: string) {
+export async function route53PurgeZonesForDnsName(
+  dnsName: string
+): Promise<void> {
   log.info("Purge Route53 hosted zone(s) for DNS name: %s", dnsName);
 
   while (true) {
@@ -105,7 +107,7 @@ export async function route53PurgeZonesForDnsName(dnsName: string) {
  * but is reflected as an asynchronous task in the Route 53 HTTP API. Follow it
  * in a polling fashion.
  */
-async function deleteHostedZone(zone: Route53.HostedZone) {
+async function deleteHostedZone(zone: Route53.HostedZone): Promise<void> {
   const result: Route53.DeleteHostedZoneResponse = await awsPromErrFilter(
     r53Client().deleteHostedZone({ Id: zone.Id }).promise()
   );
@@ -227,7 +229,9 @@ export async function sendChangeRequest(
  * submitted as a "change request" and can then be followed with a so-called
  * change ID. Do this, wait for the task to complete.
  */
-export async function waitForChangeToComplete(change: Route53.ChangeInfo) {
+export async function waitForChangeToComplete(
+  change: Route53.ChangeInfo
+): Promise<void> {
   log.info("route53: wait for submitted change request to complete");
 
   while (true) {

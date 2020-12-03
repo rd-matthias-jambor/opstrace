@@ -40,10 +40,10 @@ export function die(errorMessage: string): never {
   throw new errors.ExitError(1, errorMessage);
 }
 
-export function hasUpperCase(s: string) {
+export function hasUpperCase(s: string): boolean {
   return s.toLowerCase() != s;
 }
 
-export declare interface Dict<T = any> {
+export declare interface Dict<T> {
   [key: string]: T;
 }

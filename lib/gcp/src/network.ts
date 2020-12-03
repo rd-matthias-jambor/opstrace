@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { delay, call } from "redux-saga/effects";
+import { delay, call, CallEffect } from "redux-saga/effects";
 //@ts-ignore: don't know the reason but have to add one now for ESLint :-).
 import Compute from "@google-cloud/compute";
 import { log, SECOND } from "@opstrace/utils";
@@ -23,9 +23,10 @@ class Routes extends Compute {
   constructor(options = {}) {
     super(options);
   }
+
   destroy(
     name: string,
-    callback: (err: any, data: any) => Record<string, unknown>
+    callback: (err: Error, data: unknown) => Record<string, unknown>
   ) {
     //@ts-ignore: don't know the reason but have to add one now for ESLint :-).
     this.request(
@@ -36,7 +37,8 @@ class Routes extends Compute {
       callback
     );
   }
-  list(callback: (err: any, data: any) => void) {
+
+  list(callback: (err: Error, data: unknown) => void) {
     //@ts-ignore: don't know the reason but have to add one now for ESLint :-).
     this.request(
       {
@@ -73,7 +75,7 @@ const getRoutes = (client: any, networkName: string) =>
 
 const destroyRoute = (client: any, name: string) =>
   new Promise((resolve, reject) => {
-    client.destroy(name, (err: any, _: any) => {
+    client.destroy(name, (err: Error, _: unknown) => {
       if (err) {
         reject(err);
       } else {
@@ -93,7 +95,7 @@ const doesNetworkExist = async (
       .then((data: [boolean, any]) => {
         resolve(data[0]);
       })
-      .catch((err: any) => {
+      .catch((err: Error) => {
         reject(err);
       });
   });
@@ -105,7 +107,7 @@ const createNetwork = (client: any, name: string) => {
 
 const destroyNetwork = (client: any, name: string) => {
   return new Promise((resolve, reject) => {
-    client.network(name).delete((err: any, operation: any) => {
+    client.network(name).delete((err: Error, operation: unknown) => {
       if (err) {
         reject(err);
       }
@@ -118,7 +120,9 @@ export interface NetworkRequest {
   name: string;
 }
 
-export function* ensureNetworkExists(networkName: string) {
+export function* ensureNetworkExists(
+  networkName: string
+): Generator<CallEffect, boolean, boolean> {
   const client = new Compute();
 
   while (true) {
@@ -151,13 +155,15 @@ export function* ensureNetworkExists(networkName: string) {
   }
 }
 
-export function* ensureNetworkDoesNotExist({ name }: NetworkRequest) {
+export function* ensureNetworkDoesNotExist({
+  name
+}: NetworkRequest): Generator<CallEffect, void, any> {
   const client = new Compute();
 
   const routesClient = new Routes();
 
   let operation: any;
-  let error: any = null;
+  let error: Error | null = null;
 
   while (true) {
     const existingNetwork: boolean = yield call(doesNetworkExist, client, {

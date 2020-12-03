@@ -13,7 +13,7 @@
     "watch": "tsc -b -w",
     "clean": "rimraf build lib .cache tsconfig.tsbuildinfo",
     "prebuild": "yarn clean",
-    "lint": "echo done"
+    "lint": "eslint --ignore-pattern '/lib' . --ext .ts"
   },
   "dependencies": {
     "@types/deep-diff": "^1.0.0",

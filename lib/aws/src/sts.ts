@@ -61,7 +61,7 @@ export class STSRegionCheck extends AWSResource<true> {
     return false;
   }
 
-  protected async tryDestroy() {
+  protected async tryDestroy(): Promise<void> {
     log.warning("tryDestroy() should never be called: %s", this.rname);
   }
 

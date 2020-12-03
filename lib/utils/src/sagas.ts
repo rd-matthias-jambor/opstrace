@@ -18,7 +18,7 @@
  * Utilities for redux-saga-based task management.
  */
 
-import { call, delay } from "redux-saga/effects";
+import { call, delay, CallEffect } from "redux-saga/effects";
 
 import { log } from "./log";
 import { SECOND } from "./time";
@@ -43,7 +43,7 @@ export function* retryUponAnyError({
   doNotLogDetailForTheseErrors,
   actionName,
   delaySeconds
-}: RetryUponAnyErrorParams) {
+}: RetryUponAnyErrorParams): Generator<CallEffect, void, unknown> {
   let attempt = 0;
   while (true) {
     attempt++;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import AWS from "aws-sdk";
+import AWS, { EC2 } from "aws-sdk";
 
 import { log } from "@opstrace/utils";
 
@@ -25,7 +25,7 @@ import { AWSApiError } from "./types";
 // function arguments.
 let awsRegion: string | undefined;
 
-export function setAWSRegion(r: string) {
+export function setAWSRegion(r: string): void {
   if (awsRegion !== undefined) {
     throw new Error("setAWSRegion() was already called before");
   }
@@ -37,6 +37,19 @@ function getAWSRegion() {
     throw new Error("call setAWSRegion() first");
   }
   return awsRegion;
+}
+
+let certManagerRoleArn: string | undefined;
+
+export function setCertManagerRoleArn(arn: string): void {
+  certManagerRoleArn = arn;
+}
+
+export function getCertManagerRoleArn(): string {
+  if (certManagerRoleArn === undefined) {
+    throw new Error("call setCertManagerArn() first");
+  }
+  return certManagerRoleArn;
 }
 
 // Adjust global (singleton) AWS client config
@@ -62,45 +75,23 @@ AWS.config.update({
       // Secondary reason: use a really simple retry strategy for starters.
       // Assume that HTTP requests are fired off in the context of micro tasks
       // which retry "forever" anyway.
-
       if (!err) {
-        // Code path allows this, but this happens rarely or never, check old
-        // logs.
         log.debug(
           "aws-sdk-js request failed (attempt %s): no err information",
           retryCount
         );
-        return 3000;
-      }
-
-      //@ts-ignore: .code is sometimes set :)
-      if (err && err.code === "TimeoutError") {
-        // For the frequent real-world scenario of a TCP connect() timeout.
-        // Message is "Socket timed out without establishing a connection".
-        // Info-log that so that the reason for delays is not hidden from
-        // users.
-        const waitSec = 3 ** retryCount;
-        log.debug(
-          "AWS API request failed (attempt %s): %s (retry in %s seconds)",
+      } else {
+        // An example `err.message` for the frequent real-world scenario of a
+        // TCP connect() timeout is "Socket timed out without establishing a
+        // connection". Info-log that so that the reason for delays is not
+        // hidden from users.
+        log.info(
+          "aws-sdk-js request failed (attempt %s): %s: %s",
           retryCount,
-          err.message,
-          waitSec
+          err.name,
+          err.message
         );
-
-        return waitSec * 1000;
       }
-
-      // All other cases: might sadly be non-retryable errors, also see
-      // https://github.com/opstrace/opstrace/issues/66
-      log.debug(
-        "aws-sdk-js request failed (attempt %s): %s: %s (retryable, according to sdk: %s)",
-        retryCount,
-        err.name,
-        err.message,
-        //@ts-ignore: we want to log that also if undefined
-        err.retryable
-      );
-
       if (retryCount < 2) {
         return 1000;
       }
@@ -157,13 +148,6 @@ export function eksClient(regionOverride?: string): AWS.EKS {
   });
 }
 
-export function rdsClient(): AWS.RDS {
-  return new AWS.RDS({
-    region: getAWSRegion(),
-    maxRetries: 10
-  });
-}
-
 export function r53Client(): AWS.Route53 {
   return new AWS.Route53({
     region: getAWSRegion(),
@@ -205,7 +189,8 @@ export function stsClient(): AWS.STS {
  *
  * @param prom
  */
-export async function awsPromErrFilter(prom: Promise<any>) {
+// export async function awsPromErrFilter(prom: Promise<unknown>): Promise<unknown> {
+export async function awsPromErrFilter(prom: Promise<any>): Promise<any> {
   try {
     return await prom;
   } catch (e) {
@@ -221,7 +206,7 @@ export async function awsPromErrFilter(prom: Promise<any>) {
  *
  * Also see https://github.com/aws/aws-sdk-js/issues/2611
  */
-export function throwIfAWSAPIError(err: Error) {
+export function throwIfAWSAPIError(err: Error): void {
   //log.debug("err detail: %s", JSON.stringify(err, null, 2));
   //@ts-ignore: property originalError does not exist on type Error.
   const awserr = err.originalError;
@@ -249,7 +234,7 @@ export function throwIfAWSAPIError(err: Error) {
   throw new AWSApiError(msg, err.name, httpsc);
 }
 
-export function getWaitTimeSeconds(cycle: number) {
+export function getWaitTimeSeconds(cycle: number): number {
   // various callers rely on 0 wait time in cycle 1 (1 corresponds to the first
   // cycle).
   if (cycle == 1) {
@@ -259,7 +244,9 @@ export function getWaitTimeSeconds(cycle: number) {
   return 10;
 }
 
-export const getTagFilter = (clusterName: string) => ({
+export const getTagFilter = (
+  clusterName: string
+): { Name: string; Values: string[] } => ({
   Name: `tag:opstrace_cluster_name`,
   Values: [clusterName]
 });
@@ -283,7 +270,7 @@ export const tagResource = ({
   clusterName: string;
   resourceId: string;
   tags?: AWS.EC2.Tag[];
-}): Promise<any> => {
+}): Promise<unknown> => {
   return new Promise((resolve, reject) => {
     const additionalTags = tags ? tags : [];
     ec2c().createTags(
@@ -307,7 +294,7 @@ export const untagResource = ({
 }: {
   name: string;
   resourceId: string;
-}): Promise<any> => {
+}): Promise<unknown> => {
   return new Promise((resolve, reject) => {
     ec2c().deleteTags(
       {
@@ -339,7 +326,7 @@ export const getAccountId = (): Promise<string> => {
 export function generateKubeconfigStringForEksCluster(
   region: string,
   cluster: AWS.EKS.Cluster
-) {
+): string {
   return `apiVersion: v1
 preferences: {}
 kind: Config

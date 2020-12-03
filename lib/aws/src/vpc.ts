@@ -308,6 +308,10 @@ export async function createVPC({
   return vpc;
 }
 
-export async function destroyVPC({ clusterName }: { clusterName: string }) {
+export async function destroyVPC({
+  clusterName
+}: {
+  clusterName: string;
+}): Promise<void> {
   await new VPCRes(clusterName).teardown();
 }

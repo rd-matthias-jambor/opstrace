@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { delay, call } from "redux-saga/effects";
+import { delay, call, CallEffect } from "redux-saga/effects";
 
 import { ApiError as GCPApiError } from "@google-cloud/common";
 import { google } from "googleapis";
@@ -55,7 +55,7 @@ export async function doesGKEClusterExist({
 
   if (clusters) {
     for (const c of clusters) {
-      const ocn = c.resourceLabels!.opstrace_cluster_name;
+      const ocn = c.resourceLabels?.opstrace_cluster_name;
       if (ocn !== undefined && ocn == opstraceClusterName) {
         return c;
       }
@@ -168,9 +168,9 @@ export function* ensureGKEExists({
   cluster,
   gcpProjectID
 }: GKEExistsRequest): Generator<
-  any,
+  CallEffect,
   gkeProtos.google.container.v1.ICluster,
-  any
+  gkeProtos.google.container.v1.ICluster
 > {
   const client = new gkeClient();
 
@@ -217,7 +217,9 @@ export function* ensureGKEExists({
   }
 }
 
-export function* ensureGKEDoesNotExist(opstraceClusterName: string) {
+export function* ensureGKEDoesNotExist(
+  opstraceClusterName: string
+): Generator<CallEffect, void, gkeProtos.google.container.v1.ICluster> {
   log.info("GKE teardown: start");
 
   // current convention: gke cluster name matches OCN.

@@ -15,6 +15,7 @@
  */
 
 import { format, createLogger, transports, config, Logger } from "winston";
+import { CombinedState } from "redux";
 
 const logFormat = format.printf(
   ({ level, message, timestamp, stack }) =>
@@ -27,7 +28,7 @@ const logFormat = format.printf(
 // then use it via `log.info('msg')` etc.
 export let log: Logger;
 
-export function setLogger(logger: Logger) {
+export function setLogger(logger: Logger): void {
   if (log !== undefined) {
     throw Error("logger already set");
   }
@@ -42,7 +43,9 @@ export interface CliLogOptions {
 
 export function buildLogger(opts: CliLogOptions): Logger {
   // Try to import the `TransportStream` type. Use that instead of `any`.
-  const ts: any[] = [
+  const ts: CombinedState<
+    transports.ConsoleTransportInstance | transports.FileTransportInstance
+  >[] = [
     // Emit to stderr (stdout is default). Also see opstrace-prelaunch/issues/998.
     new transports.Console({
       stderrLevels: Object.keys(config.syslog.levels),

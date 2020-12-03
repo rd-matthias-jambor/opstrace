@@ -16,10 +16,13 @@
 
 import { readFileSync, writeFileSync } from "fs";
 
-export function readJSONFromFile(filename: string): any {
+export function readJSONFromFile(filename: string): unknown {
   return JSON.parse(readFileSync(filename, "utf8"));
 }
 
-export async function writeJSONToFile(filename: string, obj: any) {
+export async function writeJSONToFile(
+  filename: string,
+  obj: unknown
+): Promise<void> {
   writeFileSync(filename, JSON.stringify(obj, null, 2));
 }

@@ -15,7 +15,7 @@
  */
 
 import { EC2 } from "aws-sdk";
-import { delay, call } from "redux-saga/effects";
+import { delay, call, CallEffect } from "redux-saga/effects";
 import { getTags, ec2c, awsPromErrFilter } from "./util";
 
 import { SECOND, log } from "@opstrace/utils";
@@ -105,7 +105,7 @@ export const authorizeSecurityGroupEgress = ({
   Rule
 }: {
   Rule: EC2.AuthorizeSecurityGroupEgressRequest;
-}) => {
+}): Promise<unknown> => {
   return new Promise((resolve, reject) => {
     ec2c().authorizeSecurityGroupEgress(Rule, err => {
       if (err) {
@@ -125,7 +125,7 @@ export const revokeSecurityGroupEgress = ({
 }: {
   GroupId: string;
   IpPermissions: EC2.IpPermissionList;
-}) => {
+}): Promise<unknown> => {
   return new Promise((resolve, reject) => {
     ec2c().revokeSecurityGroupEgress(
       {
@@ -146,7 +146,7 @@ export const authorizeSecurityGroupIngress = ({
   Rule
 }: {
   Rule: EC2.AuthorizeSecurityGroupIngressRequest;
-}) => {
+}): Promise<unknown> => {
   return new Promise((resolve, reject) => {
     ec2c().authorizeSecurityGroupIngress(Rule, err => {
       if (err) {
@@ -166,7 +166,7 @@ export const revokeSecurityGroupIngress = ({
 }: {
   GroupId: string;
   IpPermissions: EC2.IpPermissionList;
-}) => {
+}): Promise<unknown> => {
   return new Promise((resolve, reject) => {
     ec2c().revokeSecurityGroupIngress(
       {
@@ -193,7 +193,7 @@ export function* ensureSecurityGroupExists({
   GroupName: string;
   name: string;
   Description: string;
-}) {
+}): Generator<CallEffect, EC2.SecurityGroup, EC2.SecurityGroup> {
   // Note(JP): towards making clear what name that is.
   const clusterName = name;
 
@@ -239,7 +239,7 @@ export function* ensureSecurityGroupPermissionsDoNotExist({
   GroupName
 }: {
   GroupName: string;
-}) {
+}): Generator<CallEffect, void, EC2.SecurityGroup> {
   log.info(
     "Ensuring Security Group Permissions do not exist for %s",
     GroupName
@@ -295,7 +295,7 @@ export function* ensureSecurityGroupDoesNotExist({
   GroupName
 }: {
   GroupName: string;
-}) {
+}): Generator<CallEffect, void, EC2.SecurityGroup> {
   log.info("Delete security group: %s", GroupName);
 
   while (true) {

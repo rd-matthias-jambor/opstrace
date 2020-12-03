@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { delay, call } from "redux-saga/effects";
+import { delay, call, CallEffect } from "redux-saga/effects";
 import { DNS } from "@google-cloud/dns";
 import { Route53 } from "aws-sdk";
 import { DNSZone, DNSRecord, Provider } from "./types";
@@ -25,6 +25,7 @@ import * as GCP from "./gcp";
 import * as AWS from "./aws";
 
 import { SECOND, log } from "@opstrace/utils";
+import { DeleteZoneResponse } from "@google-cloud/dns/build/src/zone";
 
 export { DNSClient } from "./opstrace";
 
@@ -59,7 +60,7 @@ const createZone = async ({
   dnsName: string;
   dns: DNS | Route53;
   provider: Provider;
-}): Promise<any> => {
+}): Promise<unknown> => {
   if (provider === "gcp") {
     return GCP.createZone({ dnsName, dns: dns as DNS });
   }
@@ -71,13 +72,12 @@ const createZone = async ({
 
 const deleteZone = async ({
   dnsName,
-  name,
   dns
 }: {
   dnsName: string;
   name: string;
   dns: DNS | Route53;
-}): Promise<any> => {
+}): Promise<DeleteZoneResponse> => {
   log.debug("deleteZone()");
   // only for GCP since opstrace-prelaunch/issues/1225
   return GCP.deleteZone({ dnsName, dns: dns as DNS });
@@ -89,13 +89,13 @@ export interface DNSRequest {
   target: Provider;
   dnsProvider: Provider;
 }
-
+//
 export function* ensureDNSExists({
   opstraceClusterName,
   dnsName,
   dnsProvider,
   target
-}: DNSRequest) {
+}: DNSRequest): Generator<CallEffect, string, DNSClient & DNSClient[] & Zone> {
   const provider = dnsProvider;
   let gcpDNS;
   let awsDNS;
@@ -114,7 +114,10 @@ export function* ensureDNSExists({
     awsDNS = new Route53();
   }
 
-  const clusters = yield call([opstraceClient, opstraceClient.GetAll]);
+  const clusters: DNSClient[] = yield call([
+    opstraceClient,
+    opstraceClient.GetAll
+  ]);
 
   log.debug(
     "DNS API client GetAll() yielded clusters: %s",
@@ -175,7 +178,7 @@ export function* destroyDNS({
 }: {
   stackName: string;
   dnsName: string;
-}) {
+}): Generator<CallEffect, void, DNSClient & Zone> {
   const opstraceClient = yield call([DNSClient, DNSClient.getInstance]);
 
   const gcpDNS = new DNS();

@@ -17,7 +17,7 @@
 import * as yup from "yup";
 import { EC2 } from "aws-sdk";
 
-export declare interface Dict<T = any> {
+export declare interface Dict<T> {
   [key: string]: T;
 }
 

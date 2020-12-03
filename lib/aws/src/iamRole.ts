@@ -15,7 +15,7 @@
  */
 
 import { IAM } from "aws-sdk";
-import { delay, call } from "redux-saga/effects";
+import { delay, call, CallEffect } from "redux-saga/effects";
 
 import { SECOND, log } from "@opstrace/utils";
 
@@ -62,7 +62,7 @@ export const attachPolicy = ({
 }: {
   RoleName: string;
   PolicyArn: string;
-}) => {
+}): Promise<unknown> => {
   return new Promise((resolve, reject) => {
     iamClient().attachRolePolicy({ RoleName, PolicyArn }, err => {
       if (err) {
@@ -79,7 +79,7 @@ export const detachPolicy = ({
 }: {
   RoleName: string;
   PolicyArn: string;
-}) => {
+}): Promise<unknown> => {
   return new Promise((resolve, reject) => {
     iamClient().detachRolePolicy({ RoleName, PolicyArn }, err => {
       if (err) {
@@ -100,7 +100,7 @@ export function* ensureRoleExists({
 }: {
   RoleName: string;
   AssumeRolePolicyDocument: string;
-}) {
+}): Generator<CallEffect, IAM.Role, IAM.Role> {
   while (true) {
     const existingRole: IAM.Role = yield call(getRole, {
       RoleName
@@ -131,7 +131,11 @@ export function* ensureRoleExists({
   }
 }
 
-export function* ensureRoleDoesNotExist({ RoleName }: { RoleName: string }) {
+export function* ensureRoleDoesNotExist({
+  RoleName
+}: {
+  RoleName: string;
+}): Generator<CallEffect, void, IAM.Role> {
   log.info(`Ensuring IAM role ${RoleName} does not exist`);
 
   while (true) {
