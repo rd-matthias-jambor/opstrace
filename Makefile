@@ -510,7 +510,8 @@ deploy-testremote-teardown:
 
 .PHONY: unit-tests
 unit-tests:
-	cd lib/kubernetes && yarn test
+	yarn --frozen-lockfile
+	CI=true yarn workspace @opstrace/kubernetes test
 
 .PHONY: preamble
 preamble:
