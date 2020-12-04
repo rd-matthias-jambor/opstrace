@@ -508,6 +508,10 @@ website-build:
 deploy-testremote-teardown:
 	bash "ci/deploy-testremote-teardown.sh"
 
+.PHONY: unit-tests
+unit-tests:
+	cd lib/kubernetes && yarn test
+
 .PHONY: preamble
 preamble:
 	bash "ci/preamble.sh"
