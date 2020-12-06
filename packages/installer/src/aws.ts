@@ -729,7 +729,6 @@ export function* ensureAWSInfraExists(): Generator<
   });
 
   const mapRolesYamlString = dedent(`
-  mapRoles: |
     - rolearn: ${workerNodeRole.Arn}
       username: <system:node:{{EC2PrivateDNSName}}>
       groups:
