@@ -735,12 +735,6 @@ export function* ensureAWSInfraExists(): Generator<
         - <system:bootstrappers>
         - <system:nodes>
 
-    - rolearn: arn:aws:iam::959325414060:role/AWSReservedSSO_AdministratorAccess_8488c3da2f880f06
-      username: <system:node:{{EC2PrivateDNSName}}>
-      groups:
-        - <system:bootstrappers>
-        - <system:nodes>
-        - <system:masters>
   `);
 
   const awsAuthConfigMap = new ConfigMap(
