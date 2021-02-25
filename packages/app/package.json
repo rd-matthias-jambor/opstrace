@@ -196,7 +196,7 @@
     "webpack-manifest-plugin": "2.2.0",
     "webpack-node-externals": "^1.7.2",
     "workbox-webpack-plugin": "5.1.3",
-    "worker-loader": "^3.0.2"
+    "worker-loader": "^3.0.8"
   },
   "scripts": {
     "client:start": "node scripts/startClient.js",
